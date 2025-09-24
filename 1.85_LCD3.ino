@@ -1,3 +1,9 @@
+// Designed for Waveshare 1.85" round lcd without touch screen
+// https://www.waveshare.com/wiki/ESP32-S3-LCD-1.85
+// 
+// LVGL version is 8.3.11
+// Display_ST77916, esp_lcd_st77916, I2C_Driver files sourced from WaveShare's demo code for the display
+
 #define DCSBIOS_DEFAULT_SERIAL
 #define DCSBIOS_DISABLE_SERVO 
 #include <DcsBios.h>
@@ -9,7 +15,7 @@
 
 // LVGL bitmaps
 #include "radarAltBackground.c"
-#include "radarAltNeedle.c";
+#include "radarAltNeedle.c"
 #include "radarAltMinHeight.c"
 #include "radarAltOff.c"
 #include "RedLedOff.c"
@@ -109,9 +115,9 @@ DcsBios::IntegerBuffer radaltAltPtrBuffer(0x751a, 0xffff, 0, onRadaltAltPtrChang
 void setup() {
     DcsBios::setup();
 
-    ST77916_Init();      //initialize the driver
-    Backlight_Init();   // initialize the backlight
-    Set_Backlight(5);   // I set the backlight level pretty low the display is quite bright at 100%
+    ST77916_Init();
+    Backlight_Init();
+    Set_Backlight(25);
 
     lv_init();
 
@@ -193,7 +199,7 @@ void setup() {
 
 
 void loop() {
-    DcsBios::loop();        // Process DCS-BIOS Loop
+    DcsBios::loop();        // Process DCS-BIOS
     lv_timer_handler();     // Refresh LVGL
 
     delay(5);  // short delay to keep things smooth
