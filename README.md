@@ -5,7 +5,7 @@ The display being used is the Waveshare 1.85" LCD without tought screen.  https:
 <B>Requirements:</b></br>
 
 ESP Board:
-  ESP32 by Expressif (not tested with version newer than 3.0.3)
+  ESP32 by Expressif (tested with version 3.3.1)
   https://espressif.github.io/arduino-esp32/package_esp32_index.json
 <br>          
 LVGL v8.3.11:  Install: Arduino IDE → Library Manager → search LVGL → install.
