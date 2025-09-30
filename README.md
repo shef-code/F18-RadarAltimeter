@@ -25,3 +25,11 @@ Its important to set the IDE up for the LCD Display. I've included a screenshot 
  
   
 </p>
+
+<p>
+## License
+This project is licensed under a [Custom Non-Commercial License](LICENSE).  
+You can use and modify it for **personal and educational purposes only**.  
+For commercial use, please contact me for permission.
+
+</p>
