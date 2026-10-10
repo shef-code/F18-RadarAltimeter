@@ -18,6 +18,9 @@
 #include "radarAltNeedle.c"
 #include "radarAltMinHeight.c"
 #include "radarAltOff.c"
+#include "radarAltHub.c"
+#include "radarAltWindowShade.c"
+#include "radarAltGlass.c"
 #include "RedLedOff.c"
 #include "GreenLedOff.c"
 #include "RedLedOn.c"
@@ -36,8 +39,15 @@ lv_obj_t *img_radarAltBackground;
 lv_obj_t *img_radarAltNeedle;
 lv_obj_t *img_radarAltMinHeight;
 lv_obj_t *img_radarAltOff;
+lv_obj_t *img_radarAltHub;
+lv_obj_t *img_radarAltWindowShade;
+lv_obj_t *img_radarAltGlass;
 lv_obj_t *img_RedLed;
 lv_obj_t *img_GreenLed;
+
+// Full-screen glass reflection and bezel shading drawn above everything. It adds a full-screen
+// alpha blend to every redraw; set to 0 to compare CPU load.
+#define USE_GLASS_OVERLAY 1
 
 // Center and radius
 const int16_t center_x = DISP_WIDTH / 2;
@@ -202,6 +212,11 @@ void setup() {
     lv_img_set_src(img_radarAltBackground, &radarAltBackground);
     lv_obj_align(img_radarAltBackground, LV_ALIGN_CENTER, 0, 0);
 
+    // Shadow along the top edge of the OFF window (the window is a hole in the background bitmap)
+    img_radarAltWindowShade = lv_img_create(lv_scr_act());
+    lv_img_set_src(img_radarAltWindowShade, &radarAltWindowShade);
+    lv_obj_set_pos(img_radarAltWindowShade, center_x - 44, center_y + 51);
+
     // ===== LEDs =====
     img_RedLed = lv_img_create(lv_scr_act());
     lv_img_set_src(img_RedLed, &RedLedOff);
@@ -228,19 +243,29 @@ void setup() {
     lv_img_set_pivot(img_radarAltMinHeight, pivot.x, pivot.y);
 
     // ===== Radar Altimeter Needle =====
+    // The needle bitmap is the shaft only (28x124). The hub is a separate fixed image on top, so
+    // a small pivot error is hidden under it. Pivot is the hub center as a pixel index.
+    const int16_t ROT_X = center_x - 1;   // rotation center pixel (179, 180), shared with the bug
+    const int16_t ROT_Y = center_y;
+    const int16_t NEEDLE_PIVOT_X = 13;
+    const int16_t NEEDLE_PIVOT_Y = 123;
+
     img_radarAltNeedle = lv_img_create(lv_scr_act());
     lv_img_set_src(img_radarAltNeedle, &radarAltNeedle);
-    // Hub center inside the needle bitmap, as a pixel index. A circle fit of the hub's alpha
-    // gives x=35.5, y=123.14 in edge coordinates, i.e. pixel index (35, 122.6). A pivot of
-    // (36, 123) orbited the hub by ~1 px as the needle rotated.
-    const int16_t NEEDLE_PIVOT_X = 35;
-    const int16_t NEEDLE_PIVOT_Y = 123;
     lv_img_set_pivot(img_radarAltNeedle, NEEDLE_PIVOT_X, NEEDLE_PIVOT_Y);
+    lv_obj_set_pos(img_radarAltNeedle, ROT_X - NEEDLE_PIVOT_X, ROT_Y - NEEDLE_PIVOT_Y);
 
-    // Place the image so the pivot lands on pixel (179, 180), the same rotation center as the
-    // min-height bug. The hub is 71 px wide (odd) on an even-width display, so exact centering
-    // is impossible; this is the closest.
-    lv_obj_set_pos(img_radarAltNeedle, center_x - 36, center_y - NEEDLE_PIVOT_Y);
+    // ===== Fixed hub cap (73x73, centered on the rotation center) =====
+    img_radarAltHub = lv_img_create(lv_scr_act());
+    lv_img_set_src(img_radarAltHub, &radarAltHub);
+    lv_obj_set_pos(img_radarAltHub, ROT_X - radarAltHub.header.w / 2, ROT_Y - radarAltHub.header.h / 2);
+
+#if USE_GLASS_OVERLAY
+    // ===== Glass reflection and bezel shading =====
+    img_radarAltGlass = lv_img_create(lv_scr_act());
+    lv_img_set_src(img_radarAltGlass, &radarAltGlass);
+    lv_obj_set_pos(img_radarAltGlass, 0, 0);
+#endif
 
     // Start needle at 0°
     lv_img_set_angle(img_radarAltNeedle, 0);
