@@ -51,6 +51,10 @@ lv_obj_t *img_GreenLed;
 // alpha blend to every redraw; set to 0 to compare CPU load.
 #define USE_GLASS_OVERLAY 1
 
+// Smooth (anti-aliased) rotation of the needle and min-height bug. Set to 0 for a faster, slightly
+// jagged rotation; compare the CPU % readings.
+#define ROTATE_ANTIALIAS 1
+
 // Center and radius
 const int16_t center_x = DISP_WIDTH / 2;
 const int16_t center_y = DISP_HEIGHT / 2;
@@ -275,6 +279,9 @@ void setup() {
     lv_obj_set_pos(img_radarAltGlass, 0, 0);
 #endif
 
+    lv_img_set_antialias(img_radarAltNeedle, ROTATE_ANTIALIAS);
+    lv_img_set_antialias(img_radarAltMinHeight, ROTATE_ANTIALIAS);
+
     // Start needle at 0°
     lv_img_set_angle(img_radarAltNeedle, 0);
 
@@ -285,7 +292,7 @@ void setup() {
 
 void loop() {
     DcsBios::loop();        // Process DCS-BIOS
-    lv_timer_handler();     // Refresh LVGL
-
-    delay(5);  // short delay to keep things smooth
+    uint32_t wait = lv_timer_handler();   // Refresh LVGL; returns ms until the next timer is due
+    if (wait > 5) wait = 5;               // keep DCS-BIOS serial polled often
+    delay(wait ? wait : 1);
 }
