@@ -108,6 +108,49 @@ void onRadaltAltPtrChange(unsigned int newValue)
 DcsBios::IntegerBuffer radaltAltPtrBuffer(0x751a, 0xffff, 0, onRadaltAltPtrChange);
 
 
+// ===== Startup demo =====
+// Runs a callback from lo to hi and back so each element visits its full range.
+static void demoSweep(void (*cb)(unsigned int), unsigned int lo, unsigned int hi) {
+    const int STEPS = 40;
+    const uint32_t STEP_MS = 35;   // a bit over LV_DISP_DEF_REFR_PERIOD so every step renders
+
+    for (int i = 0; i <= STEPS; i++) {
+        cb(lo + (uint32_t)(hi - lo) * i / STEPS);
+        lv_timer_handler();
+        delay(STEP_MS);
+    }
+    for (int i = STEPS; i >= 0; i--) {
+        cb(lo + (uint32_t)(hi - lo) * i / STEPS);
+        lv_timer_handler();
+        delay(STEP_MS);
+    }
+}
+
+static void demoHold(uint32_t ms) {
+    uint32_t start = millis();
+    while (millis() - start < ms) {
+        lv_timer_handler();
+        delay(5);
+    }
+}
+
+static void startupDemo() {
+    // LEDs on, then off
+    onRadaltGreenLampChange(1);
+    onLowAltWarnLtChange(1);
+    demoHold(800);
+    onRadaltGreenLampChange(0);
+    onLowAltWarnLtChange(0);
+    demoHold(400);
+
+    // Needle: min -> max -> min
+    demoSweep(onRadaltAltPtrChange, 3450, 65530);
+    // Min height bug: min -> max -> min
+    demoSweep(onRadaltMinHeightPtrChange, 1800, 65530);
+    // OFF flag: hidden -> fully visible -> hidden
+    demoSweep(onRadaltOffFlagChange, 0, 65535);
+}
+
 void setup() {
     DcsBios::setup();
 
@@ -187,7 +230,9 @@ void setup() {
 
     // Start needle at 0°
     lv_img_set_angle(img_radarAltNeedle, 0);
-    
+
+    startupDemo();
+
 }
 
 
