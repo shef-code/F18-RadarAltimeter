@@ -231,6 +231,18 @@ static void test_draw_bitmap(esp_lcd_panel_handle_t panel_handle)
 }
 
 esp_lcd_panel_handle_t panel_handle = NULL;
+static volatile LCD_FlushDoneCb s_flush_done_cb = NULL;
+
+void LCD_SetFlushDoneCallback(LCD_FlushDoneCb cb) {
+  s_flush_done_cb = cb;
+}
+
+static bool on_color_trans_done(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx) {
+  LCD_FlushDoneCb cb = s_flush_done_cb;
+  if (cb) cb();
+  return false;   // no higher-priority task woken
+}
+
 int QSPI_Init(void){
   static const spi_bus_config_t host_config = {            
     .data0_io_num = ESP_PANEL_LCD_SPI_IO_DATA0,                    
@@ -301,6 +313,7 @@ int QSPI_Init(void){
   } 
   // panel_io_spi_del(io_handle);
   io_config.pclk_hz = ESP_PANEL_LCD_SPI_CLK_HZ;
+  io_config.on_color_trans_done = on_color_trans_done;
   if(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)ESP_PANEL_HOST_SPI_ID_DEFAULT, &io_config, &io_handle) != ESP_OK){
     printf("Failed to set LCD communication parameters -- SPI\r\n");
     return 0;
@@ -351,13 +364,7 @@ void ST77916_Init() {
 
 void LCD_addWindow(uint16_t Xstart, uint16_t Ystart, uint16_t Xend, uint16_t Yend,uint16_t* color)
 { 
-  uint32_t size = (Xend - Xstart +1 ) * (Yend - Ystart + 1);
-  for (size_t i = 0; i < size; i++) {
-    color[i] = (((color[i] >> 8) & 0xFF) | ((color[i] << 8) & 0xFF00));
-  }
-  // for (size_t i = 0; i < size; i++) {
-  //   color[i] = 0xFFFF;
-  // }
+  // Byte swap is done by LVGL (LV_COLOR_16_SWAP 1), so the buffer is sent as-is.
   Xend = Xend + 1;      // esp_lcd_panel_draw_bitmap: x_end End index on x-axis (x_end not included)
   Yend = Yend + 1;      // esp_lcd_panel_draw_bitmap: y_end End index on y-axis (y_end not included)
   if (Xend > EXAMPLE_LCD_WIDTH)

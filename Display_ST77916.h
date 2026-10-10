@@ -41,6 +41,10 @@ void ST77916_Init();
 void LCD_Init();
 void LCD_addWindow(uint16_t Xstart, uint16_t Ystart, uint16_t Xend, uint16_t Yend,uint16_t* color);
 
+// Called when the SPI/DMA transfer of a color buffer has finished (LVGL: lv_disp_flush_ready)
+typedef void (*LCD_FlushDoneCb)(void);
+void LCD_SetFlushDoneCallback(LCD_FlushDoneCb cb);
+
 // backlight
 void Backlight_Init();
 void Set_Backlight(uint8_t Light);  
