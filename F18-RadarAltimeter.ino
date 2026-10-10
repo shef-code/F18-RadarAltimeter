@@ -221,20 +221,26 @@ void setup() {
     int16_t y = center_y - radarAltMinHeight.header.h;
     lv_obj_set_pos(img_radarAltMinHeight, x, y);
 
-    // Set pivot to bottom center
-    lv_point_t pivot = { radarAltMinHeight.header.w / 2, radarAltMinHeight.header.h };
+    // Pivot at bottom center. LVGL pivots are pixel indices, and the art is symmetric about
+    // index (w-1)/2 = 14.5, so use 14: the rotation center is then pixel 165+14 = 179, the same
+    // as the needle's.
+    lv_point_t pivot = { radarAltMinHeight.header.w / 2 - 1, radarAltMinHeight.header.h };
     lv_img_set_pivot(img_radarAltMinHeight, pivot.x, pivot.y);
 
     // ===== Radar Altimeter Needle =====
     img_radarAltNeedle = lv_img_create(lv_scr_act());
     lv_img_set_src(img_radarAltNeedle, &radarAltNeedle);
-    // Hub center inside the needle bitmap (measured from the image alpha: x=35.5, y=123)
-    const int16_t NEEDLE_PIVOT_X = 36;
+    // Hub center inside the needle bitmap, as a pixel index. A circle fit of the hub's alpha
+    // gives x=35.5, y=123.14 in edge coordinates, i.e. pixel index (35, 122.6). A pivot of
+    // (36, 123) orbited the hub by ~1 px as the needle rotated.
+    const int16_t NEEDLE_PIVOT_X = 35;
     const int16_t NEEDLE_PIVOT_Y = 123;
     lv_img_set_pivot(img_radarAltNeedle, NEEDLE_PIVOT_X, NEEDLE_PIVOT_Y);
 
-    // Place the image so the pivot lands exactly on the display center
-    lv_obj_set_pos(img_radarAltNeedle, center_x - NEEDLE_PIVOT_X, center_y - NEEDLE_PIVOT_Y);
+    // Place the image so the pivot lands on pixel (179, 180), the same rotation center as the
+    // min-height bug. The hub is 71 px wide (odd) on an even-width display, so exact centering
+    // is impossible; this is the closest.
+    lv_obj_set_pos(img_radarAltNeedle, center_x - 36, center_y - NEEDLE_PIVOT_Y);
 
     // Start needle at 0°
     lv_img_set_angle(img_radarAltNeedle, 0);
