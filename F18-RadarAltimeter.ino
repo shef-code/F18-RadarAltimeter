@@ -43,9 +43,15 @@ lv_obj_t *img_GreenLed;
 const int16_t center_x = DISP_WIDTH / 2;
 const int16_t center_y = DISP_HEIGHT / 2;
 
+static lv_disp_drv_t disp_drv;
+
+// Queues the SPI/DMA transfer; lv_disp_flush_ready is called when it completes
 void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p) {
     LCD_addWindow(area->x1, area->y1, area->x2, area->y2, (uint16_t*)color_p);
-    lv_disp_flush_ready(disp);
+}
+
+static void flush_done() {
+    lv_disp_flush_ready(&disp_drv);
 }
 
 
@@ -168,20 +174,17 @@ void setup() {
     static lv_disp_draw_buf_t draw_buf;
     lv_disp_draw_buf_init(&draw_buf, buf1, buf2, DISP_WIDTH * 40);
 
-    static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
     disp_drv.hor_res = DISP_WIDTH;
     disp_drv.ver_res = DISP_HEIGHT;
     disp_drv.flush_cb = my_disp_flush;
     disp_drv.draw_buf = &draw_buf;
     lv_disp_drv_register(&disp_drv);
+    LCD_SetFlushDoneCallback(flush_done);
 
     // ===== Black background =====
-    lv_obj_t *bg_rect = lv_obj_create(lv_scr_act());
-    lv_obj_set_size(bg_rect, DISP_WIDTH, DISP_HEIGHT);
-    lv_obj_set_style_bg_color(bg_rect, lv_color_hex(0x000000), 0);
-    lv_obj_set_style_border_width(bg_rect, 0, 0);
-    lv_obj_clear_flag(bg_rect, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_bg_color(lv_scr_act(), lv_color_hex(0x000000), 0);
+    lv_obj_set_style_bg_opa(lv_scr_act(), LV_OPA_COVER, 0);
 
 
     // OFF flag (final resting position is centered with +69px)
