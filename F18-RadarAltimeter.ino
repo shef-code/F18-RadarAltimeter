@@ -166,7 +166,8 @@ void setup() {
 
     // Position pointer at top center (example)
     int16_t x = center_x - radarAltMinHeight.header.w / 2;
-    int16_t y = 0; // distance from top edge
+    // Bottom-center pivot must land on the display center, so y = center_y - image height
+    int16_t y = center_y - radarAltMinHeight.header.h;
     lv_obj_set_pos(img_radarAltMinHeight, x, y);
 
     // Set pivot to bottom center
@@ -176,10 +177,13 @@ void setup() {
     // ===== Radar Altimeter Needle =====
     img_radarAltNeedle = lv_img_create(lv_scr_act());
     lv_img_set_src(img_radarAltNeedle, &radarAltNeedle);
-    lv_obj_align(img_radarAltNeedle, LV_ALIGN_CENTER, 0, -48);
+    // Hub center inside the needle bitmap (measured from the image alpha: x=35.5, y=123)
+    const int16_t NEEDLE_PIVOT_X = 36;
+    const int16_t NEEDLE_PIVOT_Y = 123;
+    lv_img_set_pivot(img_radarAltNeedle, NEEDLE_PIVOT_X, NEEDLE_PIVOT_Y);
 
-    // Set pivot explicitly to hub center
-    lv_img_set_pivot(img_radarAltNeedle, 36, 123);
+    // Place the image so the pivot lands exactly on the display center
+    lv_obj_set_pos(img_radarAltNeedle, center_x - NEEDLE_PIVOT_X, center_y - NEEDLE_PIVOT_Y);
 
     // Start needle at 0°
     lv_img_set_angle(img_radarAltNeedle, 0);
