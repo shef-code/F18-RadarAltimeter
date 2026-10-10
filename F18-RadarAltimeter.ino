@@ -243,12 +243,12 @@ void setup() {
     lv_img_set_pivot(img_radarAltMinHeight, pivot.x, pivot.y);
 
     // ===== Radar Altimeter Needle =====
-    // The needle bitmap is the shaft only (28x124). The hub is a separate fixed image on top, so
+    // The needle bitmap is the shaft only (28x138). The hub is a separate fixed image on top, so
     // a small pivot error is hidden under it. Pivot is the hub center as a pixel index.
     const int16_t ROT_X = center_x - 1;   // rotation center pixel (179, 180), shared with the bug
     const int16_t ROT_Y = center_y;
     const int16_t NEEDLE_PIVOT_X = 13;
-    const int16_t NEEDLE_PIVOT_Y = 123;
+    const int16_t NEEDLE_PIVOT_Y = 137;
 
     img_radarAltNeedle = lv_img_create(lv_scr_act());
     lv_img_set_src(img_radarAltNeedle, &radarAltNeedle);
