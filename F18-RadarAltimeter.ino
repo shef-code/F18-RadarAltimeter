@@ -109,29 +109,34 @@ DcsBios::IntegerBuffer radaltAltPtrBuffer(0x751a, 0xffff, 0, onRadaltAltPtrChang
 
 
 // ===== Startup demo =====
-// Runs a callback from lo to hi and back so each element visits its full range.
-static void demoSweep(void (*cb)(unsigned int), unsigned int lo, unsigned int hi) {
-    const int STEPS = 40;
-    const uint32_t STEP_MS = 35;   // a bit over LV_DISP_DEF_REFR_PERIOD so every step renders
-
-    for (int i = 0; i <= STEPS; i++) {
-        cb(lo + (uint32_t)(hi - lo) * i / STEPS);
-        lv_timer_handler();
-        delay(STEP_MS);
-    }
-    for (int i = STEPS; i >= 0; i--) {
-        cb(lo + (uint32_t)(hi - lo) * i / STEPS);
-        lv_timer_handler();
-        delay(STEP_MS);
-    }
-}
-
 static void demoHold(uint32_t ms) {
     uint32_t start = millis();
     while (millis() - start < ms) {
         lv_timer_handler();
         delay(5);
     }
+}
+
+// Runs a callback from lo to hi and back so each element visits its full range.
+// Motion is time-based with smoothstep easing, so it stays smooth at any frame rate.
+static void demoLeg(void (*cb)(unsigned int), unsigned int from, unsigned int to, uint32_t ms) {
+    const uint32_t start = millis();
+    uint32_t elapsed;
+    while ((elapsed = millis() - start) < ms) {
+        float t = (float)elapsed / ms;
+        float s = t * t * (3.0f - 2.0f * t);
+        cb(from + (int32_t)((int32_t)to - (int32_t)from) * s);
+        lv_timer_handler();
+        delay(5);
+    }
+    cb(to);                         // land exactly on the end value
+    lv_timer_handler();
+}
+
+static void demoSweep(void (*cb)(unsigned int), unsigned int lo, unsigned int hi) {
+    demoLeg(cb, lo, hi, 1800);
+    demoLeg(cb, hi, lo, 1800);
+    demoHold(250);
 }
 
 static void startupDemo() {
