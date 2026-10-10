@@ -21,6 +21,7 @@
 #include "radarAltHub.c"
 #include "radarAltWindowShade.c"
 #include "radarAltGlass.c"
+#include "radarAltMask.c"
 #include "RedLedOff.c"
 #include "GreenLedOff.c"
 #include "RedLedOn.c"
@@ -42,6 +43,7 @@ lv_obj_t *img_radarAltOff;
 lv_obj_t *img_radarAltHub;
 lv_obj_t *img_radarAltWindowShade;
 lv_obj_t *img_radarAltGlass;
+lv_obj_t *img_radarAltMask;
 lv_obj_t *img_RedLed;
 lv_obj_t *img_GreenLed;
 
@@ -254,6 +256,12 @@ void setup() {
     lv_img_set_src(img_radarAltNeedle, &radarAltNeedle);
     lv_img_set_pivot(img_radarAltNeedle, NEEDLE_PIVOT_X, NEEDLE_PIVOT_Y);
     lv_obj_set_pos(img_radarAltNeedle, ROT_X - NEEDLE_PIVOT_X, ROT_Y - NEEDLE_PIVOT_Y);
+
+    // ===== Needle mask: raised plate between 50 and 0 that the pointer slides under =====
+    // Position is taken from a photo of the real indicator (photo coordinates + (4,5)).
+    img_radarAltMask = lv_img_create(lv_scr_act());
+    lv_img_set_src(img_radarAltMask, &radarAltMask);
+    lv_obj_set_pos(img_radarAltMask, 66, 5);
 
     // ===== Fixed hub cap (73x73, centered on the rotation center) =====
     img_radarAltHub = lv_img_create(lv_scr_act());
